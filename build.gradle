@@ -47,6 +47,7 @@ dependencies {
     compile("org.jetbrains.kotlin:kotlin-reflect:${kotlinVersion}")
     compile group: 'org.springframework.retry', name: 'spring-retry', version: '1.2.1.RELEASE'
     compile('org.springframework.boot:spring-boot-starter-web')
+    compile ('io.jsonwebtoken:jjwt:0.7.0')
     testCompile('org.springframework.boot:spring-boot-starter-test')
     testCompile('io.projectreactor:reactor-test')
 }

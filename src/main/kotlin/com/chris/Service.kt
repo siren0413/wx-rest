@@ -1,6 +1,10 @@
 package com.chris
 
+import io.jsonwebtoken.Jwts
+import io.jsonwebtoken.SignatureAlgorithm
+import io.jsonwebtoken.impl.crypto.MacProvider
 import org.springframework.stereotype.Service
+import java.security.Key
 import java.util.regex.Pattern
 
 @Service
@@ -16,7 +20,14 @@ class LoginService {
         println(smsInfo)
     }
 
-    fun login(loginInfo: LoginInfo) {
+    fun auth(loginInfo: LoginInfo): String {
+        // verify code
 
+        // generate token
+        val key = MacProvider.generateKey()
+        return Jwts.builder()
+                .setSubject("cn.loan")
+                .signWith(SignatureAlgorithm.HS512, key)
+                .compact();
     }
 }

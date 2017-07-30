@@ -21,7 +21,7 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
 //        return ErrorResponse(ex.message?:"message not available")
 //    }
 
-    @ExceptionHandler
+    @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException, response: HttpServletResponse) {
         response.sendError(HttpStatus.BAD_REQUEST.value())
     }

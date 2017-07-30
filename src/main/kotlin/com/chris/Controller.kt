@@ -20,13 +20,15 @@ class LoginController {
     }
 
     @CrossOrigin
-    @RequestMapping("/login", method = arrayOf(RequestMethod.POST))
-    fun login(@RequestBody loginInfo: LoginInfo, request: HttpServletRequest) {
+    @RequestMapping("/auth", method = arrayOf(RequestMethod.POST))
+    fun login(@RequestBody loginInfo: LoginInfo, request: HttpServletRequest):JWToken {
         loginInfo.phoneNumber?:throw IllegalArgumentException("INVALID_PHONE_NUMBER")
         loginInfo.code?:throw IllegalArgumentException("INVALID_SMS_CODE")
         loginInfo.agreeTos?:throw IllegalArgumentException("INVALID_TOS")
         loginInfo.ipAddress = request.remoteAddr?:throw IllegalArgumentException("INVALID_IP_ADDRESS")
-        loginService.login(loginInfo)
+        loginService.auth(loginInfo)?.let {
+            return JWToken(it)
+        }
     }
 
 }
