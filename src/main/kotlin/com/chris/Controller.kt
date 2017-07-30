@@ -19,22 +19,28 @@ class LoginController {
         loginService.sendCode(smsInfo)
     }
 
-    @CrossOrigin
-    @RequestMapping("/auth", method = arrayOf(RequestMethod.POST))
-    fun auth(@RequestBody loginInfo: LoginInfo, request: HttpServletRequest):JWToken {
-        loginInfo.phoneNumber?:throw IllegalArgumentException("INVALID_PHONE_NUMBER")
-        loginInfo.code?:throw IllegalArgumentException("INVALID_SMS_CODE")
-        loginInfo.agreeTos?:throw IllegalArgumentException("INVALID_TOS")
-        loginInfo.ipAddress = request.remoteAddr?:throw IllegalArgumentException("INVALID_IP_ADDRESS")
-        loginService.auth(loginInfo)?.let {
-            return JWToken(it)
-        }
-    }
+//    @CrossOrigin
+//    @RequestMapping("/auth", method = arrayOf(RequestMethod.POST))
+//    fun auth(@RequestBody loginInfo: LoginInfo, request: HttpServletRequest):JWToken {
+//        loginInfo.phoneNumber?:throw IllegalArgumentException("INVALID_PHONE_NUMBER")
+//        loginInfo.code?:throw IllegalArgumentException("INVALID_SMS_CODE")
+//        loginInfo.agreeTos?:throw IllegalArgumentException("INVALID_TOS")
+//        loginInfo.ipAddress = request.remoteAddr?:throw IllegalArgumentException("INVALID_IP_ADDRESS")
+//        loginService.auth(loginInfo)?.let {
+//            return JWToken(it)
+//        }
+//    }
 
     @CrossOrigin
     @RequestMapping("/tokeninfo", method = arrayOf(RequestMethod.GET))
     fun tokeninfo(@RequestParam token: String, request: HttpServletRequest) {
         loginService.tokeninfo(token)
+    }
+
+    @CrossOrigin
+    @RequestMapping("/hello", method = arrayOf(RequestMethod.POST))
+    fun hello(@RequestBody smsInfo: SmsInfo, request: HttpServletRequest) {
+        println("h****************************")
     }
 
 }

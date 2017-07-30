@@ -47,3 +47,8 @@ class LoginService {
         }
     }
 }
+
+@Service
+class UserService {
+
+}
