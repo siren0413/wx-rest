@@ -1,5 +1,8 @@
 package com.chris
 
+import io.jsonwebtoken.ExpiredJwtException
+import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.SignatureException
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
@@ -20,6 +23,21 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
 //    fun illegalArgumentExceptionHandler(ex: IllegalArgumentException): ErrorResponse {
 //        return ErrorResponse(ex.message?:"message not available")
 //    }
+
+    @ExceptionHandler(SignatureException::class)
+    fun handleIllegalArgumentException(ex: SignatureException, response: HttpServletResponse) {
+        response.sendError(HttpStatus.FORBIDDEN.value(),"INVALID_TOKEN")
+    }
+
+    @ExceptionHandler(ExpiredJwtException::class)
+    fun handleIllegalArgumentException(ex: ExpiredJwtException, response: HttpServletResponse) {
+        response.sendError(HttpStatus.FORBIDDEN.value(), "TOKEN_EXPIRED")
+    }
+
+    @ExceptionHandler(MalformedJwtException::class)
+    fun handleIllegalArgumentException(ex: MalformedJwtException, response: HttpServletResponse) {
+        response.sendError(HttpStatus.FORBIDDEN.value())
+    }
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException, response: HttpServletResponse) {

@@ -21,7 +21,7 @@ class LoginController {
 
     @CrossOrigin
     @RequestMapping("/auth", method = arrayOf(RequestMethod.POST))
-    fun login(@RequestBody loginInfo: LoginInfo, request: HttpServletRequest):JWToken {
+    fun auth(@RequestBody loginInfo: LoginInfo, request: HttpServletRequest):JWToken {
         loginInfo.phoneNumber?:throw IllegalArgumentException("INVALID_PHONE_NUMBER")
         loginInfo.code?:throw IllegalArgumentException("INVALID_SMS_CODE")
         loginInfo.agreeTos?:throw IllegalArgumentException("INVALID_TOS")
@@ -29,6 +29,12 @@ class LoginController {
         loginService.auth(loginInfo)?.let {
             return JWToken(it)
         }
+    }
+
+    @CrossOrigin
+    @RequestMapping("/tokeninfo", method = arrayOf(RequestMethod.GET))
+    fun tokeninfo(@RequestParam token: String, request: HttpServletRequest) {
+        loginService.tokeninfo(token)
     }
 
 }
