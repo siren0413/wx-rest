@@ -1,5 +1,6 @@
 package com.chris
 
+import com.fasterxml.jackson.core.JsonParser
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.jsonwebtoken.*
@@ -30,6 +31,9 @@ import org.springframework.security.web.util.matcher.OrRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher
 import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 import java.util.*
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
@@ -45,6 +49,7 @@ val TOKEN_HEADER_PARAM = "Authorization"
 val FORM_BASED_LOGIN_ENTRY_POINT = "/auth"
 val TOKEN_BASED_AUTH_ENTRY_POINT = "/**"
 val TOKEN_REFRESH_ENTRY_POINT = "/token"
+val FORM_BASED_SENDCODE_ENTRY_POINT = "/sendcode"
 
 
 @Configuration
@@ -66,7 +71,7 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
     }
 
     fun buildJwtTokenAuthenticationProcessingFilter(): JwtTokenAuthenticationProcessingFilter{
-        val pathsToSkip = listOf<String>(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT)
+        val pathsToSkip = listOf<String>(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT, FORM_BASED_SENDCODE_ENTRY_POINT)
         val matcher = SkipPathRequestMatcher(pathsToSkip, TOKEN_BASED_AUTH_ENTRY_POINT)
         val filter = JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher)
         filter.setAuthenticationManager(authenticationManager);
@@ -85,6 +90,7 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
     }
 
     override fun configure(http: HttpSecurity) {
+        http.cors()
         http.csrf().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint)
@@ -97,6 +103,7 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
                 .authorizeRequests()
                 .antMatchers(FORM_BASED_LOGIN_ENTRY_POINT).permitAll()
                 .antMatchers(TOKEN_REFRESH_ENTRY_POINT).permitAll()
+                .antMatchers(FORM_BASED_SENDCODE_ENTRY_POINT).permitAll()
 
                 .and()
                 .authorizeRequests()
@@ -106,12 +113,24 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
                 .addFilterBefore(buildAjaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter::class.java)
                 .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter::class.java)
     }
+
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = listOf("*")
+        configuration.allowedMethods = listOf("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH")
+        configuration.allowCredentials = true;
+        configuration.allowedHeaders = listOf("Authorization", "Cache-Control", "Content-Type");
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
 
 // Filter
 class AjaxLoginProcessingFilter(val defaultProcessUrl: String, val ajaxSuccessHandler: AuthenticationSuccessHandler, val ajaxFailureHandler: AuthenticationFailureHandler) : AbstractAuthenticationProcessingFilter(defaultProcessUrl) {
 
-    override fun attemptAuthentication(request: HttpServletRequest?, response: HttpServletResponse?): Authentication {
+    override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse?): Authentication {
 
         val loginInfo = objectMapper.readValue<LoginInfo>(request?.reader, LoginInfo::class.java)
 
@@ -136,6 +155,7 @@ class AjaxLoginProcessingFilter(val defaultProcessUrl: String, val ajaxSuccessHa
 
 class JwtTokenAuthenticationProcessingFilter(val jwtFailureHandler: AuthenticationFailureHandler, val tokenExtractor: JwtHeaderTokenExtractor, val matcher: RequestMatcher) : AbstractAuthenticationProcessingFilter(matcher) {
     override fun attemptAuthentication(request: HttpServletRequest, response: HttpServletResponse): Authentication {
+
         val tokenPayload: String? = request.getHeader(TOKEN_HEADER_PARAM)
         val jwtToken = JwtToken(tokenExtractor.extract(tokenPayload))
         return authenticationManager.authenticate(JwtAuthenticationToken(jwtToken))
@@ -248,7 +268,6 @@ class RestAuthenticationEntryPoint: AuthenticationEntryPoint {
     override fun commence(request: HttpServletRequest?, response: HttpServletResponse?, authException: AuthenticationException?) {
         response?.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized")
     }
-
 }
 
 // utility
