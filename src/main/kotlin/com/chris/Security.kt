@@ -46,10 +46,10 @@ val tokenExpireSeconds = 1209600
 val tokenSigningKey = "W2txU0U4Q2NlQmZ+eDdldlo5JlB7PCN1Uld7aEF+NmQkTl0/TkZKblRlXk5DPGFd" // [kqSE8CceBf~x7evZ9&P{<#uRW{hA~6d$N]?NFJnTe^NC<a]
 
 val TOKEN_HEADER_PARAM = "Authorization"
-val FORM_BASED_LOGIN_ENTRY_POINT = "/auth"
+val FORM_BASED_LOGIN_ENTRY_POINT = "/api/v1/auth"
 val TOKEN_BASED_AUTH_ENTRY_POINT = "/**"
-val TOKEN_REFRESH_ENTRY_POINT = "/token"
-val FORM_BASED_SENDCODE_ENTRY_POINT = "/sendcode"
+val TOKEN_REFRESH_ENTRY_POINT = "/api/v1/token"
+val FORM_BASED_SENDCODE_ENTRY_POINT = "/api/v1/sendcode"
 
 
 @Configuration
