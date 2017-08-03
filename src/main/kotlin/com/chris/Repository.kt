@@ -1,20 +1,6 @@
 package com.chris
 
-import com.mongodb.MongoClient
-import org.mongodb.morphia.Datastore
-import org.mongodb.morphia.Morphia
-import org.springframework.stereotype.Component
+import org.springframework.data.mongodb.repository.MongoRepository
 
-@Component
-class MongoRepository {
 
-    final val datastore: Datastore
-
-    init {
-        val morphia = Morphia()
-        morphia.mapPackage("com.chris")
-        datastore = morphia.createDatastore(MongoClient("192.168.1.201"), "identity")
-        datastore.ensureIndexes()
-    }
-
-}
+interface UserRepository: MongoRepository<User, String> {}

@@ -43,4 +43,9 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     fun handleIllegalArgumentException(ex: IllegalArgumentException, response: HttpServletResponse) {
         response.sendError(HttpStatus.BAD_REQUEST.value())
     }
+
+    @ExceptionHandler(IllegalStateException::class)
+    fun handleIllegalStateException(ex: IllegalStateException, response: HttpServletResponse) {
+        response.sendError(HttpStatus.BAD_REQUEST.value())
+    }
 }

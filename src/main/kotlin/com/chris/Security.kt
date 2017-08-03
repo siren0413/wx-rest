@@ -47,6 +47,7 @@ val FORM_BASED_LOGIN_ENTRY_POINT = "/api/v1/auth"
 val TOKEN_BASED_AUTH_ENTRY_POINT = "/**"
 val TOKEN_REFRESH_ENTRY_POINT = "/api/v1/token"
 val FORM_BASED_SENDCODE_ENTRY_POINT = "/api/v1/sendcode"
+val MANAGEMENT_ENTRY_POINT = "/application/**"
 val STORE_FRONT_ENTRY_POINT = "/api/v1/loan/*"
 
 @Configuration
@@ -68,7 +69,7 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
     }
 
     fun buildJwtTokenAuthenticationProcessingFilter(): JwtTokenAuthenticationProcessingFilter {
-        val pathsToSkip = listOf<String>(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT, FORM_BASED_SENDCODE_ENTRY_POINT, STORE_FRONT_ENTRY_POINT, "/")
+        val pathsToSkip = listOf<String>(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT, FORM_BASED_SENDCODE_ENTRY_POINT, STORE_FRONT_ENTRY_POINT, MANAGEMENT_ENTRY_POINT, "/")
         val matcher = SkipPathRequestMatcher(pathsToSkip, TOKEN_BASED_AUTH_ENTRY_POINT)
         val filter = JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher)
         filter.setAuthenticationManager(authenticationManager);
@@ -107,6 +108,7 @@ class WebSecurityConfig : WebSecurityConfigurerAdapter() {
                 .antMatchers(TOKEN_REFRESH_ENTRY_POINT).permitAll()
                 .antMatchers(FORM_BASED_SENDCODE_ENTRY_POINT).permitAll()
                 .antMatchers(STORE_FRONT_ENTRY_POINT).permitAll()
+                .antMatchers(MANAGEMENT_ENTRY_POINT).permitAll()
                 .antMatchers("/").permitAll()
 
                 .and()
