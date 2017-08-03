@@ -1,6 +1,7 @@
 package com.chris
 
 import org.mongodb.morphia.Key
+import org.mongodb.morphia.query.Query
 import org.mongodb.morphia.query.UpdateOperations
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -37,7 +38,9 @@ class UserService {
     @Autowired lateinit var mongo: MongoRepository
 
     fun saveUserProfileGeneral(userProfileGeneral: UserProfileGeneral) {
-        mongo.datastore.save(userProfileGeneral)
+        val query = mongo.datastore.createQuery(User::class.java).field("_id").equal(getSubject())
+        val ops = mongo.datastore.createUpdateOperations(User::class.java).set("userProfileGeneral", userProfileGeneral)
+        mongo.datastore.update(query, ops, true)
     }
 }
 

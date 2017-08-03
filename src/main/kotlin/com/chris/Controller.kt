@@ -21,11 +21,6 @@ class LoginController {
     fun tokeninfo(request: HttpServletRequest) {
     }
 
-    @RequestMapping("/api/v1/auth", method = arrayOf(RequestMethod.POST))
-    fun login(@RequestBody loginInfo: LoginInfo) {
-        loginService.login(loginInfo)
-    }
-
     // @CrossOrigin
     @RequestMapping("/api/v1/hello", method = arrayOf(RequestMethod.POST))
     fun hello(@RequestBody smsInfo: SmsInfo, request: HttpServletRequest) {

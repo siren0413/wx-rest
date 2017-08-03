@@ -51,7 +51,7 @@ val STORE_FRONT_ENTRY_POINT = "/api/v1/loan/*"
 
 @Configuration
 @EnableWebSecurity
-class WebSecurityConfig: WebSecurityConfigurerAdapter() {
+class WebSecurityConfig : WebSecurityConfigurerAdapter() {
 
     @Autowired lateinit var authenticationEntryPoint: RestAuthenticationEntryPoint
     @Autowired lateinit var successHandler: AuthenticationSuccessHandler
@@ -61,13 +61,13 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
     @Autowired lateinit var tokenExtractor: JwtHeaderTokenExtractor
     @Autowired lateinit var authenticationManager: AuthenticationManager
 
-    fun buildAjaxLoginProcessingFilter():AjaxLoginProcessingFilter {
+    fun buildAjaxLoginProcessingFilter(): AjaxLoginProcessingFilter {
         val filter = AjaxLoginProcessingFilter(FORM_BASED_LOGIN_ENTRY_POINT, this.successHandler, this.failureHandler)
         filter.setAuthenticationManager(authenticationManager)
         return filter
     }
 
-    fun buildJwtTokenAuthenticationProcessingFilter(): JwtTokenAuthenticationProcessingFilter{
+    fun buildJwtTokenAuthenticationProcessingFilter(): JwtTokenAuthenticationProcessingFilter {
         val pathsToSkip = listOf<String>(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT, FORM_BASED_SENDCODE_ENTRY_POINT, STORE_FRONT_ENTRY_POINT, "/")
         val matcher = SkipPathRequestMatcher(pathsToSkip, TOKEN_BASED_AUTH_ENTRY_POINT)
         val filter = JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher)
@@ -170,11 +170,12 @@ class JwtTokenAuthenticationProcessingFilter(val jwtFailureHandler: Authenticati
         context.authentication = authResult
         SecurityContextHolder.setContext(context)
         chain.doFilter(request, response)
+        // TODO clean Context?
     }
 
     override fun unsuccessfulAuthentication(request: HttpServletRequest?, response: HttpServletResponse?, failed: AuthenticationException?) {
         SecurityContextHolder.clearContext()
-        jwtFailureHandler.onAuthenticationFailure(request,response,failed)
+        jwtFailureHandler.onAuthenticationFailure(request, response, failed)
     }
 }
 
@@ -193,11 +194,11 @@ class AjaxAuthenticationProvider @Autowired constructor(val userService: UserSer
 }
 
 @Component
-class JwtAuthenticationProvider: AuthenticationProvider {
+class JwtAuthenticationProvider : AuthenticationProvider {
 
     override fun authenticate(authentication: Authentication): Authentication {
         val jwtToken = authentication.credentials as JwtToken
-//        val jwsClaims: Jws<Claims> = Jwts.parser().setSigningKey(tokenSigningKey).parseClaimsJws(jwtToken.accessToken)
+
         try {
             Jwts.parser().setSigningKey(tokenSigningKey).parseClaimsJws(jwtToken.accessToken)
         } catch (e: Exception) {
@@ -244,7 +245,7 @@ class AjaxAwareAuthenticationFailureHandler : AuthenticationFailureHandler {
 
 }
 
-class SkipPathRequestMatcher(val pathsToSkip: List<String>, processingPath: String): RequestMatcher {
+class SkipPathRequestMatcher(val pathsToSkip: List<String>, processingPath: String) : RequestMatcher {
 
     val matchers: OrRequestMatcher
     val processingMatcher: RequestMatcher
@@ -265,7 +266,7 @@ class SkipPathRequestMatcher(val pathsToSkip: List<String>, processingPath: Stri
 }
 
 @Component
-class RestAuthenticationEntryPoint: AuthenticationEntryPoint {
+class RestAuthenticationEntryPoint : AuthenticationEntryPoint {
     override fun commence(request: HttpServletRequest?, response: HttpServletResponse?, authException: AuthenticationException?) {
         response?.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized")
     }
@@ -318,6 +319,12 @@ class JwtAuthenticationToken : AbstractAuthenticationToken {
     override fun getCredentials(): Any {
         return jwtToken
     }
+}
 
+class JwtUtils {
+    fun getSubject(jwtToken: String): String {
+        val jwsClaims: Jws<Claims> = Jwts.parser().setSigningKey(tokenSigningKey).parseClaimsJws(jwtToken)
+        return jwsClaims.body.subject
+    }
 }
 
