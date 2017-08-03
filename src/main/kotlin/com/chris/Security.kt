@@ -1,7 +1,5 @@
 package com.chris
 
-import com.fasterxml.jackson.core.JsonParser
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.jsonwebtoken.*
 import org.joda.time.DateTime
@@ -38,7 +36,6 @@ import java.util.*
 import javax.servlet.FilterChain
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import kotlin.reflect.full.isSubclassOf
 
 val objectMapper = jacksonObjectMapper()
 val tokenIssuer = "cn.chris"
@@ -50,7 +47,7 @@ val FORM_BASED_LOGIN_ENTRY_POINT = "/api/v1/auth"
 val TOKEN_BASED_AUTH_ENTRY_POINT = "/**"
 val TOKEN_REFRESH_ENTRY_POINT = "/api/v1/token"
 val FORM_BASED_SENDCODE_ENTRY_POINT = "/api/v1/sendcode"
-
+val STORE_FRONT_ENTRY_POINT = "/api/v1/loan/*"
 
 @Configuration
 @EnableWebSecurity
@@ -71,7 +68,7 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
     }
 
     fun buildJwtTokenAuthenticationProcessingFilter(): JwtTokenAuthenticationProcessingFilter{
-        val pathsToSkip = listOf<String>(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT, FORM_BASED_SENDCODE_ENTRY_POINT)
+        val pathsToSkip = listOf<String>(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT, FORM_BASED_SENDCODE_ENTRY_POINT, STORE_FRONT_ENTRY_POINT, "/")
         val matcher = SkipPathRequestMatcher(pathsToSkip, TOKEN_BASED_AUTH_ENTRY_POINT)
         val filter = JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher)
         filter.setAuthenticationManager(authenticationManager);
@@ -89,9 +86,14 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
         auth.authenticationProvider(jwtAuthenticationProvider)
     }
 
+//    override fun configure(web: WebSecurity) {
+//        web.ignoring().antMatchers(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT, FORM_BASED_SENDCODE_ENTRY_POINT, "/")
+//    }
+
     override fun configure(http: HttpSecurity) {
         http.cors()
-        http.csrf().disable()
+                .and()
+                .csrf().disable()
                 .exceptionHandling()
                 .authenticationEntryPoint(authenticationEntryPoint)
 
@@ -104,6 +106,8 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
                 .antMatchers(FORM_BASED_LOGIN_ENTRY_POINT).permitAll()
                 .antMatchers(TOKEN_REFRESH_ENTRY_POINT).permitAll()
                 .antMatchers(FORM_BASED_SENDCODE_ENTRY_POINT).permitAll()
+                .antMatchers(STORE_FRONT_ENTRY_POINT).permitAll()
+                .antMatchers("/").permitAll()
 
                 .and()
                 .authorizeRequests()
@@ -122,7 +126,7 @@ class WebSecurityConfig: WebSecurityConfigurerAdapter() {
         configuration.allowCredentials = true;
         configuration.allowedHeaders = listOf("Authorization", "Cache-Control", "Content-Type");
         val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/api/v1/**", configuration);
         return source;
     }
 }
@@ -139,7 +143,7 @@ class AjaxLoginProcessingFilter(val defaultProcessUrl: String, val ajaxSuccessHa
         loginInfo.agreeTos ?: throw IllegalArgumentException("INVALID_TOS")
         loginInfo.ipAddress = request?.remoteAddr ?: throw IllegalArgumentException("INVALID_IP_ADDRESS")
 
-        val token = UsernamePasswordAuthenticationToken(loginInfo.phoneNumber, loginInfo.code)
+        val token = UsernamePasswordAuthenticationToken(loginInfo, loginInfo.code)
         return this.authenticationManager.authenticate(token)
     }
 
@@ -176,14 +180,15 @@ class JwtTokenAuthenticationProcessingFilter(val jwtFailureHandler: Authenticati
 
 
 @Component
-class AjaxAuthenticationProvider @Autowired constructor(val userService: UserService) : AuthenticationProvider {
+class AjaxAuthenticationProvider @Autowired constructor(val userService: UserService, val loginService: LoginService) : AuthenticationProvider {
     override fun authenticate(authentication: Authentication?): Authentication {
-        val phoneNumber: String = authentication?.principal as String
+        val loginInfo = authentication?.principal as LoginInfo
         val smsCode: String = authentication.credentials as String
 
         // TODO: validate phone number and sms code
 
-        return UsernamePasswordAuthenticationToken(phoneNumber, smsCode, emptyList())
+        loginService.login(loginInfo)
+        return UsernamePasswordAuthenticationToken(loginInfo.phoneNumber, smsCode, emptyList())
     }
 
     override fun supports(authentication: Class<*>?): Boolean {

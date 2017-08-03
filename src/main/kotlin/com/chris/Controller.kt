@@ -21,7 +21,12 @@ class LoginController {
     fun tokeninfo(request: HttpServletRequest) {
     }
 
-    //    @CrossOrigin
+    @RequestMapping("/api/v1/auth", method = arrayOf(RequestMethod.POST))
+    fun login(@RequestBody loginInfo: LoginInfo) {
+        loginService.login(loginInfo)
+    }
+
+    // @CrossOrigin
     @RequestMapping("/api/v1/hello", method = arrayOf(RequestMethod.POST))
     fun hello(@RequestBody smsInfo: SmsInfo, request: HttpServletRequest) {
         println("h****************************")
@@ -43,5 +48,15 @@ class LoanController {
         val loanConfig = LoanConfig(amount, term)
         println(loanConfig)
         return loanService.computeServiceFee(loanConfig)
+    }
+}
+
+@RestController
+class UserController {
+    @Autowired lateinit var userService: UserService
+
+    @RequestMapping("/api/v1/user/profile/general")
+    fun postProfileGeneral(@RequestBody userProfileGeneral: UserProfileGeneral) {
+        userService.saveUserProfileGeneral(userProfileGeneral)
     }
 }
