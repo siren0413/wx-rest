@@ -183,12 +183,8 @@ class JwtTokenAuthenticationProcessingFilter(val jwtFailureHandler: Authenticati
 class AjaxAuthenticationProvider @Autowired constructor(val userService: UserService, val loginService: LoginService) : AuthenticationProvider {
     override fun authenticate(authentication: Authentication?): Authentication {
         val loginInfo = authentication?.principal as LoginInfo
-        val smsCode: String = authentication.credentials as String
-
-        // TODO: validate phone number and sms code
-
         loginService.login(loginInfo)
-        return UsernamePasswordAuthenticationToken(loginInfo.phoneNumber, smsCode, emptyList())
+        return UsernamePasswordAuthenticationToken(loginInfo.phoneNumber, loginInfo.code, emptyList())
     }
 
     override fun supports(authentication: Class<*>?): Boolean {
