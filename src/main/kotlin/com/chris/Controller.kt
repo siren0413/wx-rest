@@ -50,8 +50,28 @@ class LoanController {
 class UserController {
     @Autowired lateinit var userService: UserService
 
-    @RequestMapping("/api/v1/user/profile/general")
+    @RequestMapping("/api/v1/user/profile/general", method = arrayOf(RequestMethod.POST))
     fun postProfileGeneral(@RequestBody userProfileGeneral: UserProfileGeneral) {
         userService.saveUserProfileGeneral(userProfileGeneral)
+    }
+
+    @RequestMapping("/api/v1/user/profile/identity", method = arrayOf(RequestMethod.POST))
+    fun postProfileIdentity(@RequestBody userProfileIdentity: UserProfileIdentity) {
+        userService.saveUserProfileIdentity(userProfileIdentity)
+    }
+
+    @RequestMapping("/api/v1/user/profile/general", method = arrayOf(RequestMethod.GET))
+    fun getProfileGeneral(): UserProfileGeneral {
+        return userService.getUserProfileGeneral(getSubject()!!)
+    }
+
+    @RequestMapping("/api/v1/user/profile/identity", method = arrayOf(RequestMethod.GET))
+    fun getProfileIdentity(): UserProfileIdentity {
+        return userService.getUserProfileIdentity(getSubject()!!)
+    }
+
+    @RequestMapping("/api/v1/user/profile/general/status", method = arrayOf(RequestMethod.GET))
+    fun getProfileGeneralStatus(): UserProfileGeneralStatusResponse {
+        return userService.getUserProfileGeneralStatus(getSubject()!!)
     }
 }

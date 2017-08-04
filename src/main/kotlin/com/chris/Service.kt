@@ -2,6 +2,8 @@ package com.chris
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import org.springframework.util.StringUtils
+import java.util.*
 import java.util.regex.Pattern
 import kotlin.collections.ArrayList
 
@@ -25,7 +27,8 @@ class LoginService {
         // TODO check if code is valid
 
         if (!repository.existsById(loginInfo.phoneNumber)) {
-            val user = User(principle = loginInfo.phoneNumber!!)
+            val now = Date()
+            val user = User(principle = loginInfo.phoneNumber!!, _dateCreated = now, _dateModified = now)
             repository.save(user)
         }
     }
@@ -35,15 +38,72 @@ class LoginService {
 class UserService {
     @Autowired lateinit var repository: UserRepository
 
-    fun saveUserProfileGeneral(userProfileGeneral: UserProfileGeneral) {
+    fun getUser(): User{
         val user = try {
             repository.findById(getSubject()).get()
         } catch (e: NoSuchElementException) {
             throw IllegalStateException("user is not exists in authenticated api")
         }
+        return user
+    }
 
+    fun saveUserProfileGeneral(userProfileGeneral: UserProfileGeneral) {
+        val user = getUser()
+        val now = Date()
+        userProfileGeneral._dateCreated = user.userProfileGeneral?._dateCreated
+        if (userProfileGeneral._dateCreated == null){
+            userProfileGeneral._dateCreated = now
+        }
+        userProfileGeneral._dateModified = now
         user.userProfileGeneral = userProfileGeneral
         repository.save(user)
+    }
+
+    fun saveUserProfileIdentity(userProfileIdentity: UserProfileIdentity) {
+        val user = getUser()
+        val now = Date()
+        userProfileIdentity._dateCreated = user.userProfileIdentity?._dateCreated
+        if (userProfileIdentity._dateCreated == null) {
+            userProfileIdentity._dateCreated = now
+        }
+
+        userProfileIdentity._dateModified = now
+        user.userProfileIdentity = userProfileIdentity
+        repository.save(user)
+    }
+
+    fun getUserProfileGeneral(id: String): UserProfileGeneral {
+        val user = getUser()
+        user.userProfileGeneral?._dateCreated?.let {
+            return user.userProfileGeneral!!
+        }
+        throw NotFoundException("user profile general not found")
+    }
+
+    fun getUserProfileIdentity(id: String): UserProfileIdentity {
+        val user = getUser()
+        user.userProfileIdentity?._dateCreated?.let {
+            return user.userProfileIdentity!!
+        }
+        throw NotFoundException("user profile identity not found")
+    }
+
+    fun getUserProfileGeneralStatus(id: String):UserProfileGeneralStatusResponse {
+        val user = getUser()
+        val p = user.userProfileGeneral
+        p?.let {
+            if (!StringUtils.isEmpty(p.residentCity) &&
+                    !StringUtils.isEmpty(p.residentAddress) &&
+                    !StringUtils.isEmpty(p.residentTime) &&
+                    !StringUtils.isEmpty(p.education) &&
+                    !StringUtils.isEmpty(p.income) &&
+                    !StringUtils.isEmpty(p.job) &&
+                    !StringUtils.isEmpty(p.marriageStatus) &&
+                    !StringUtils.isEmpty(p.qq)){
+                return UserProfileGeneralStatusResponse(0, "已完成")
+            }
+        }
+        return UserProfileGeneralStatusResponse(1, "未完成")
     }
 }
 

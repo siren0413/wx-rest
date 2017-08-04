@@ -48,4 +48,8 @@ class RestResponseEntityExceptionHandler : ResponseEntityExceptionHandler() {
     fun handleIllegalStateException(ex: IllegalStateException, response: HttpServletResponse) {
         response.sendError(HttpStatus.BAD_REQUEST.value())
     }
+    @ExceptionHandler(NotFoundException::class)
+    fun handleNotFoundException(ex: NotFoundException, response: HttpServletResponse) {
+        response.sendError(HttpStatus.NOT_FOUND.value())
+    }
 }
