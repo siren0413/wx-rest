@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service
 import org.springframework.util.StringUtils
 import java.util.*
 import java.util.regex.Pattern
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.PBEKeySpec
 import kotlin.collections.ArrayList
 
 @Service
@@ -37,8 +39,9 @@ class LoginService {
 @Service
 class UserService {
     @Autowired lateinit var repository: UserRepository
+    val skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512")
 
-    fun getUser(): User{
+    fun getUser(): User {
         val user = try {
             repository.findById(getSubject()).get()
         } catch (e: NoSuchElementException) {
@@ -51,7 +54,7 @@ class UserService {
         val user = getUser()
         val now = Date()
         userProfileGeneral._dateCreated = user.userProfileGeneral?._dateCreated
-        if (userProfileGeneral._dateCreated == null){
+        if (userProfileGeneral._dateCreated == null) {
             userProfileGeneral._dateCreated = now
         }
         userProfileGeneral._dateModified = now
@@ -88,7 +91,7 @@ class UserService {
         throw NotFoundException("user profile identity not found")
     }
 
-    fun getUserProfileGeneralStatus(id: String):UserProfileStatusResponse {
+    fun getUserProfileGeneralStatus(id: String): UserProfileStatusResponse {
         val user = getUser()
         val p = user.userProfileGeneral
         p?.let {
@@ -99,7 +102,7 @@ class UserService {
                     !StringUtils.isEmpty(p.income) &&
                     !StringUtils.isEmpty(p.job) &&
                     !StringUtils.isEmpty(p.marriageStatus) &&
-                    !StringUtils.isEmpty(p.qq)){
+                    !StringUtils.isEmpty(p.qq)) {
                 return UserProfileStatusResponse(0, "已完成")
             }
         }
@@ -111,11 +114,42 @@ class UserService {
         val p = user.userProfileIdentity
         p?.let {
             if (!StringUtils.isEmpty(p.name) &&
-                    !StringUtils.isEmpty(p.idNumber)){
+                    !StringUtils.isEmpty(p.idNumber)) {
                 return UserProfileStatusResponse(0, "已完成")
             }
         }
         return UserProfileStatusResponse(1, "未完成")
+    }
+
+    fun getPasswordStatus(id: String): PasswordStatusResponse {
+        val user = getUser()
+        user.password?.let {
+            return PasswordStatusResponse(0, "已设置")
+        }
+        return PasswordStatusResponse(1, "未设置")
+    }
+
+    fun savePassword(id: String, password: String) {
+        val user = getUser()
+        val salt = getRandomSalt()
+        val spec = PBEKeySpec(password.toCharArray(), salt, 5, 256)
+        val key = skf.generateSecret(spec)
+        val res = key.encoded
+        user.password = Base64.getEncoder().encodeToString(res)
+        user.salt = Base64.getEncoder().encodeToString(salt)
+        repository.save(user)
+    }
+
+    fun verifyPassword(id: String, password: String): Boolean {
+        val user = getUser()
+        val spec = PBEKeySpec(password.toCharArray(), Base64.getDecoder().decode(user.salt), 5, 256)
+        val key = skf.generateSecret(spec)
+        val res = key.encoded
+        val input = Base64.getEncoder().encodeToString(res)
+        if (input == user.password) {
+            return true
+        }
+        return false
     }
 }
 

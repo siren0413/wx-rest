@@ -16,7 +16,7 @@ data class ServiceFee(val loanConfig: LoanConfig, val fee: Int)
 
 
 @Document(collection = "users")
-data class User(@Id val principle: String, var userProfileGeneral: UserProfileGeneral?=null, var userProfileIdentity: UserProfileIdentity?=null, var _dateCreated: Date?=null, var _dateModified: Date?=null)
+data class User(@Id val principle: String, var password: String?=null, var salt:String?=null, var userProfileGeneral: UserProfileGeneral?=null, var userProfileIdentity: UserProfileIdentity?=null, var _dateCreated: Date?=null, var _dateModified: Date?=null)
 data class UserProfileGeneral(val residentCity: String?, val residentAddress: String?, val residentTime: String?, val education: String?, val job: String?, val income: String?, val marriageStatus: String?, val qq: String?, var _dateCreated: Date?=null, var _dateModified: Date?=null)
 data class UserProfileIdentity(val name: String?, val idNumber: String?, var _dateCreated: Date?=null, var _dateModified: Date?=null)
 
@@ -28,3 +28,6 @@ data class LoanApplicationStatusResponse(val statusList: ArrayList<LoanApplicati
 data class CreditLimit(val limit: Int)
 
 data class IncreaseCreditLimitResponse(val status: Int, val title:String, val desc: String)
+data class PasswordStatusResponse(val status: Int, val desc: String)
+data class UserPassword(val password: String)
+data class UserPasswordUpdate(val currentPassword: String, val newPassword: String)

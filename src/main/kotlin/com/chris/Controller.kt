@@ -64,12 +64,12 @@ class LoanController {
     }
 
     @RequestMapping("/api/v1/loan/credit/limit")
-    fun currentCreditLimit():CreditLimit {
+    fun currentCreditLimit(): CreditLimit {
         return CreditLimit(500)
     }
 
     @RequestMapping("/api/v1/loan/credit/limit/increase")
-    fun increaseCreditLimit():IncreaseCreditLimitResponse {
+    fun increaseCreditLimit(): IncreaseCreditLimitResponse {
 //        return IncreaseCreditLimitResponse(0, "提交成功", "我们会马上审核你的提额申请")
         return IncreaseCreditLimitResponse(1, "提交失败", "亲，请再积累一定的信用分后再尝试")
     }
@@ -107,5 +107,35 @@ class UserController {
     @RequestMapping("/api/v1/user/profile/identity/status", method = arrayOf(RequestMethod.GET))
     fun getProfileIdentityStatus(): UserProfileStatusResponse {
         return userService.getUserProfileIdentityStatus(getSubject()!!)
+    }
+
+    @RequestMapping("/api/v1/user/password/status", method = arrayOf(RequestMethod.GET))
+    fun getPasswordStatus(): PasswordStatusResponse {
+        return userService.getPasswordStatus(getSubject()!!)
+    }
+
+    @RequestMapping("/api/v1/user/password/create", method = arrayOf(RequestMethod.POST))
+    fun createPassword(@RequestBody userPassword: UserPassword) {
+        val status = userService.getPasswordStatus(getSubject()!!)
+        if (status.status == 1) {
+            userService.savePassword(getSubject()!!, userPassword.password)
+        } else {
+            throw IllegalStateException("password already exists")
+        }
+    }
+
+    @RequestMapping("/api/v1/user/password/update", method = arrayOf(RequestMethod.POST))
+    fun updatePassword(@RequestBody passwordUpdate: UserPasswordUpdate) {
+        // TODO throttling
+        val status = userService.getPasswordStatus(getSubject()!!)
+        if (status.status == 0) {
+            if (userService.verifyPassword(getSubject()!!, passwordUpdate.currentPassword)) {
+                userService.savePassword(getSubject()!!, passwordUpdate.newPassword)
+            } else {
+                throw IllegalArgumentException("您输入的当前密码错误")
+            }
+        } else {
+            throw IllegalStateException("no password exists")
+        }
     }
 }

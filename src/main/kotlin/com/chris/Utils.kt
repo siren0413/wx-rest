@@ -4,6 +4,9 @@ import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jws
 import io.jsonwebtoken.Jwts
 import org.springframework.security.core.context.SecurityContextHolder
+import java.security.SecureRandom
+
+val RANDOM = SecureRandom()
 
 fun getSubject(): String? {
     val principle = SecurityContextHolder.getContext().authentication.principal
@@ -12,4 +15,10 @@ fun getSubject(): String? {
         return jwsClaims.body.subject
     }
     return null
+}
+
+fun getRandomSalt(): ByteArray {
+    val salt = ByteArray(16)
+    RANDOM.nextBytes(salt)
+    return salt
 }
