@@ -3,6 +3,7 @@ package com.chris
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.util.*
+import kotlin.collections.ArrayList
 
 data class SmsInfo(val phoneNumber: String?, var ipAddress: String?)
 @Document(collection = "users")
@@ -20,3 +21,10 @@ data class UserProfileGeneral(val residentCity: String?, val residentAddress: St
 data class UserProfileIdentity(val name: String?, val idNumber: String?, var _dateCreated: Date?=null, var _dateModified: Date?=null)
 
 data class UserProfileStatusResponse(val status: Int, val desc: String)
+
+data class LoanApplicationStatus(val status: Int, val title: String, val desc: String)
+data class LoanApplicationStatusResponse(val statusList: ArrayList<LoanApplicationStatus>)
+
+data class CreditLimit(val limit: Int)
+
+data class IncreaseCreditLimitResponse(val status: Int, val title:String, val desc: String)
