@@ -19,4 +19,4 @@ data class User(@Id val principle: String, var userProfileGeneral: UserProfileGe
 data class UserProfileGeneral(val residentCity: String?, val residentAddress: String?, val residentTime: String?, val education: String?, val job: String?, val income: String?, val marriageStatus: String?, val qq: String?, var _dateCreated: Date?=null, var _dateModified: Date?=null)
 data class UserProfileIdentity(val name: String?, val idNumber: String?, var _dateCreated: Date?=null, var _dateModified: Date?=null)
 
-data class UserProfileGeneralStatusResponse(val status: Int, val desc: String)
+data class UserProfileStatusResponse(val status: Int, val desc: String)

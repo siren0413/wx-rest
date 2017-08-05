@@ -1,5 +1,6 @@
 package com.chris
 
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
@@ -71,7 +72,12 @@ class UserController {
     }
 
     @RequestMapping("/api/v1/user/profile/general/status", method = arrayOf(RequestMethod.GET))
-    fun getProfileGeneralStatus(): UserProfileGeneralStatusResponse {
+    fun getProfileGeneralStatus(): UserProfileStatusResponse {
         return userService.getUserProfileGeneralStatus(getSubject()!!)
+    }
+
+    @RequestMapping("/api/v1/user/profile/identity/status", method = arrayOf(RequestMethod.GET))
+    fun getProfileIdentityStatus(): UserProfileStatusResponse {
+        return userService.getUserProfileIdentityStatus(getSubject()!!)
     }
 }

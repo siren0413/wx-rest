@@ -88,7 +88,7 @@ class UserService {
         throw NotFoundException("user profile identity not found")
     }
 
-    fun getUserProfileGeneralStatus(id: String):UserProfileGeneralStatusResponse {
+    fun getUserProfileGeneralStatus(id: String):UserProfileStatusResponse {
         val user = getUser()
         val p = user.userProfileGeneral
         p?.let {
@@ -100,10 +100,22 @@ class UserService {
                     !StringUtils.isEmpty(p.job) &&
                     !StringUtils.isEmpty(p.marriageStatus) &&
                     !StringUtils.isEmpty(p.qq)){
-                return UserProfileGeneralStatusResponse(0, "已完成")
+                return UserProfileStatusResponse(0, "已完成")
             }
         }
-        return UserProfileGeneralStatusResponse(1, "未完成")
+        return UserProfileStatusResponse(1, "未完成")
+    }
+
+    fun getUserProfileIdentityStatus(id: String): UserProfileStatusResponse {
+        val user = getUser()
+        val p = user.userProfileIdentity
+        p?.let {
+            if (!StringUtils.isEmpty(p.name) &&
+                    !StringUtils.isEmpty(p.idNumber)){
+                return UserProfileStatusResponse(0, "已完成")
+            }
+        }
+        return UserProfileStatusResponse(1, "未完成")
     }
 }
 
